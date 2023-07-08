@@ -108,12 +108,8 @@ case $1 in
     password=$3
 
     # Create user with provided username and home directory
-    useradd_command="useradd $username -m -d /home/$username -s /bin/true"
+    useradd_command="useradd $username -m -d /home/$username -s /bin/true -p $(openssl passwd -1 $password)"
     sudo $useradd_command
-
-    # Set password for new user
-    passwd_command="passwd $username"
-    sudo chpasswd <<< "$username:$password"
 
     # Show new username and password
     echo "New user created:"
