@@ -74,6 +74,18 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+# Check if screen is installed and prompt the user to install it if it's missing
+if ! command -v screen >/dev/null 2>&1; then
+  read -p "The 'screen' package is not installed. Do you want to install it now? (y/n): " install_screen
+  if [[ $install_screen == "y" || $install_screen == "Y" ]]; then
+    sudo apt-get update
+    sudo apt-get install -y screen
+  else
+    echo "Error: The 'screen' package is required but not installed. Aborting."
+    exit 1
+  fi
+fi
+
 # Parse command line arguments
 if [[ $# -lt 1 ]]; then
   usage
