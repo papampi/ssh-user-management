@@ -76,6 +76,11 @@ case $1 in
     fi
     username=$2
     deluser $username
+    # Check if the user's home folder still exists and remove it if necessary
+    if [ -d "/home/$username" ]; then
+      echo "Removing the user's home folder: /home/$username"
+      sudo rm -rf "/home/$username"
+    fi
     ;;
   *)
     echo "Error: Invalid option."
