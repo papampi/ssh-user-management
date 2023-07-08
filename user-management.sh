@@ -8,7 +8,64 @@ function usage {
   echo "  -l, --list      List all existing regular user accounts with a home directory and SSH access"
   echo "  -a, --add       Add a new user account"
   echo "  -r, --remove    Remove an existing user account"
+  echo "  -b, --badvpn    Set up badvpn-udpgw system-wide"
   echo ""
+  echo "Usage examples:"
+  echo "  ./user-management.sh -l"
+  echo "  ./user-management.sh -a john secret"
+  echo "  ./user-management.sh -r jane"
+  echo "  ./user-management.sh -b"
+  echo ""
+}
+
+# Function to setup badvpn
+function setup_badvpn {
+  # Check if badvpn-udpgw already exists
+  if command -v badvpn-udpgw &>/dev/null; then
+    read -p "badvpn-udpgw already exists. Do you want to overwrite/update it? (y/n): " overwrite_badvpn
+
+    if [[ $overwrite_badvpn == "y" || $overwrite_badvpn == "Y" ]]; then
+      prompt_badvpn_port
+    else
+      echo "Skipping badvpn-udpgw setup."
+    fi
+  else
+    prompt_badvpn_port
+  fi
+}
+
+# Function to prompt for badvpn-udpgw port and start setup
+function prompt_badvpn_port {
+  # Prompt user for the badvpn-udpgw port
+  read -p "Enter the port for badvpn-udpgw (1024-65535): " port
+
+  # Validate port range
+  if ! [[ $port =~ ^[0-9]+$ ]] || [[ $port -lt 1024 || $port -gt 65535 ]]; then
+    echo "Invalid port number. Port must be within the range of 1024 to 65535."
+    return
+  fi
+
+  # Download and configure badvpn-udpgw
+  wget -O /usr/bin/badvpn-udpgw "https://raw.githubusercontent.com/daybreakersx/premscript/master/badvpn-udpgw64"
+  chmod +x /usr/bin/badvpn-udpgw
+  screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:$port
+
+  echo "badvpn-udpgw is set up system-wide on port $port"
+
+  # Ask user if they want badvpn-udpgw to start at reboot
+  read -p "Do you want badvpn-udpgw to start at reboot? (y/n): " start_at_reboot
+
+  if [[ $start_at_reboot == "y" || $start_at_reboot == "Y" ]]; then
+    # Check if the @reboot entry for badvpn-udpgw exists in crontab
+    if ! crontab -l | grep -q "@reboot screen -AmdS badvpn badvpn-udpgw"; then
+      # Add the @reboot entry for badvpn-udpgw to crontab
+      (crontab -l ; echo "@reboot screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:$port") | crontab -
+
+      echo "Added badvpn-udpgw @reboot entry to crontab"
+    else
+      echo "The @reboot entry for badvpn-udpgw already exists in crontab"
+    fi
+  fi
 }
 
 # Check if the script is being run as root
@@ -55,16 +112,16 @@ case $1 in
     read -p "Do you want to set an expiry date for the user? (y/n): " set_expiry
 
     if [[ $set_expiry == "y" || $set_expiry == "Y" ]]; then
-        # Prompt user for expiry date
-        read -p "Enter expiry date (YYYY-MM-DD): " expiry_date
+      # Prompt user for expiry date
+      read -p "Enter expiry date (YYYY-MM-DD): " expiry_date
 
-        # Add cron job to remove user and home directory on expiry date
-        cron_command="userdel -rfRZ $username ; pkill -u $username sshd"
-        (crontab -l ; echo "0 0 $expiry_date * * $cron_command") | crontab -
+      # Add cron job to remove user and home directory on expiry date
+      cron_command="userdel -rfRZ $username ; pkill -u $username sshd"
+      (crontab -l ; echo "0 0 $expiry_date * * $cron_command") | crontab -
 
-        echo "User and home directory will be removed on $expiry_date"
+      echo "User and home directory will be removed on $expiry_date"
     else
-        echo "Expiry date not set"
+      echo "Expiry date not set"
     fi
     ;;
   -r|--remove)
@@ -83,6 +140,10 @@ case $1 in
       echo "Removing the user's home folder: /home/$username"
       sudo rm -rf "/home/$username"
     fi
+    ;;
+  -b|--badvpn)
+    # Set up badvpn-udpgw system-wide
+    setup_badvpn
     ;;
   *)
     echo "Error: Invalid option."
