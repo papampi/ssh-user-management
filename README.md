@@ -1,20 +1,45 @@
-# User Management Script
+# User Management Bash Script
 
-This script allows you to manage user accounts on a Linux system. You can list existing users with a home directory and SSH access, add new users with a specified username and password, and remove existing users.
+This is a Bash script that provides basic user management functionality for a Linux system. The script can be used to list existing regular user accounts with a home directory and SSH access, add a new user account, remove an existing user account, and set up the `badvpn-udpgw` system-wide.
 
 ## Usage
 
-To run the script, open a terminal and navigate to the directory where the `user-management.sh` file is located. Then, enter the following command:
+To use the script, you need to have root privileges. You can run the script by executing the following command:
 
-`sudo ./user-management.sh [OPTION] [USERNAME] [PASSWORD]`
+```bash
+sudo ./user-management.sh [OPTION] [USERNAME] [PASSWORD]
+```
 
-Replace `[OPTION]` with one of the following:
+The script takes three optional arguments:
 
-- `-l` or `--list`: List all existing regular user accounts with a home directory and SSH access.
-- `-a` or `--add`: Add a new user account. You must specify a username and password.
-- `-r` or `--remove`: Remove an existing user account. You must specify a username.
+- `-l` or `--list`: Lists all existing regular user accounts with a home directory and SSH access.
+- `-a` or `--add`: Adds a new user account. This option requires you to specify a username and a password.
+- `-r` or `--remove`: Removes an existing user account. This option requires you to specify a username.
+- `-b` or `--badvpn`: Sets up `badvpn-udpgw` system-wide.
 
-Replace `[USERNAME]` and `[PASSWORD]` with the desired username and password when adding a new user.
+Use the `usage` function to print a help message with usage instructions and examples.
+
+## Functionality
+
+### List existing user accounts
+
+The `-l` option lists all existing regular user accounts with a home directory and SSH access. The script uses `awk` to parse the `/etc/passwd` file and filter out users that don't meet the criteria.
+
+### Add a new user account
+
+The `-a` option adds a new user account with the specified username and password. The script creates a new user with the provided username and home directory, sets the password for the user, and prompts the user to set an expiry date for the account. If an expiry date is set, the script adds a cron job to remove the user and the home directory on the specified date.
+
+### Remove an existing user account
+
+The `-r` option removes an existing user account with the specified username. The script first kills the user's SSH session and then removes the user account and the home directory. If the home directory still exists after removing the user account, the script also removes the home directory.
+
+### Set up badvpn-udpgw system-wide
+
+The `-b` option sets up `badvpn-udpgw` system-wide. The script checks if `badvpn-udpgw` is already installed and prompts the user to overwrite/update it if necessary. The user is then prompted to enter a port number for `badvpn-udpgw`. The script downloads and configures `badvpn-udpgw` and starts it in a detached screen session. The user is also asked if they want `badvpn-udpgw` to start at reboot. If the user answers yes, the script adds a cron job to start `badvpn-udpgw` at reboot.
+
+## Dependencies
+
+The script requires the `screen` package to be installed. If `screen` is not installed, the script prompts the user to install it.
 
 ## Examples
 
