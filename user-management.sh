@@ -24,7 +24,7 @@ function setup_badvpn {
   if command -v badvpn-udpgw &>/dev/null; then
     read -p "badvpn-udpgw already exists. Do you want to overwrite/update it? (y/n): " overwrite_badvpn
 
-    if [[ $overwrite_badvpn == "y" || $overwrite_badvpn == "Y" ]]; then
+    if [[ ${overwrite_badvpn,,} == "y" ]]; then
       prompt_badvpn
     else
       echo "Skipping badvpn-udpgw setup."
@@ -55,7 +55,7 @@ function prompt_badvpn {
   # Ask user if they want badvpn-udpgw to start at reboot
   read -p "Do you want badvpn-udpgw to start at reboot? (y/n): " start_at_reboot
 
-  if [[ $start_at_reboot == "y" || $start_at_reboot == "Y" ]]; then
+  if [[ ${start_at_reboot,,} == "y" ]]; then
     # Check if the @reboot entry for badvpn-udpgw exists in crontab
     if ! crontab -l | grep -q "@reboot screen -AmdS badvpn badvpn-udpgw"; then
       # Add the @reboot entry for badvpn-udpgw to crontab
@@ -77,7 +77,7 @@ fi
 # Check if screen is installed and prompt the user to install it if it's missing
 if ! command -v screen >/dev/null 2>&1; then
   read -p "The 'screen' package is not installed. Do you want to install it now? (y/n): " install_screen
-  if [[ $install_screen == "y" || $install_screen == "Y" ]]; then
+  if [[ ${install_screen,,} == "y" ]]; then
     sudo apt-get update
     sudo apt-get install -y screen
   else
@@ -123,7 +123,7 @@ case $1 in
     # Ask user if they want to set an expiry date for the user
     read -p "Do you want to set an expiry date for the user? (y/n): " set_expiry
 
-    if [[ $set_expiry == "y" || $set_expiry == "Y" ]]; then
+    if [[ ${set_expiry,,} == "y" ]]; then
       # Prompt user for expiry date
       read -p "Enter expiry date (YYYY-MM-DD): " expiry_date
 
