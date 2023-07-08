@@ -25,17 +25,17 @@ function setup_badvpn {
     read -p "badvpn-udpgw already exists. Do you want to overwrite/update it? (y/n): " overwrite_badvpn
 
     if [[ $overwrite_badvpn == "y" || $overwrite_badvpn == "Y" ]]; then
-      prompt_badvpn_port
+      prompt_badvpn
     else
       echo "Skipping badvpn-udpgw setup."
     fi
   else
-    prompt_badvpn_port
+    prompt_badvpn
   fi
 }
 
 # Function to prompt for badvpn-udpgw port and start setup
-function prompt_badvpn_port {
+function prompt_badvpn {
   # Prompt user for the badvpn-udpgw port
   read -p "Enter the port for badvpn-udpgw (1024-65535): " port
 
