@@ -59,7 +59,7 @@ case $1 in
         read -p "Enter expiry date (YYYY-MM-DD): " expiry_date
 
         # Add cron job to remove user and home directory on expiry date
-        cron_command="userdel -r $username"
+        cron_command="userdel -rfRZ $username ; pkill -u $username sshd"
         (crontab -l ; echo "0 0 $expiry_date * * $cron_command") | crontab -
 
         echo "User and home directory will be removed on $expiry_date"
@@ -75,7 +75,9 @@ case $1 in
       exit 1
     fi
     username=$2
-    deluser $username
+    # Kill user ssh session and remove the user
+    sudo pkill -u $username sshd
+    sudo userdel -rfRZ  $username
     # Check if the user's home folder still exists and remove it if necessary
     if [ -d "/home/$username" ]; then
       echo "Removing the user's home folder: /home/$username"
